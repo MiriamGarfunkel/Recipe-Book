@@ -8,8 +8,8 @@ function initializeStorage() {
         const defaultUsers = [
             { username: 'admin', password: 'admin123' },
             { username: 'user', password: 'user123' },
-            { username: 'chef', password: 'chef123' }
-            { username: 'miriam', password: 'miriam123' }
+            { username: 'chef', password: 'chef123' },
+            { username: 'miriam', password: 'miriam123' },
             { username: 'else', password: 'else123' }
         ];
         localStorage.setItem('users', JSON.stringify(defaultUsers));
