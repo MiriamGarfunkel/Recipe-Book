@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Book with TTS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😋</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* FORCE SETTINGS VISIBILITY */
+        #settingsScreen * {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        #settingsScreen h2 {
+            color: white !important;
+        }
+        #settingsScreen h5 {
+            color: #333 !important;
+        }
+        #settingsScreen p {
+            color: #666 !important;
+        }
+        #settingsScreen #delayValue {
+            color: #667eea !important;
+        }
+        #settingsScreen .card {
+            background: white !important;
+        }
+        [data-theme="dark"] #settingsScreen .card {
+            background: rgba(40, 40, 40, 0.9) !important;
+        }
+        [data-theme="dark"] #settingsScreen h5 {
+            color: #e0e0e0 !important;
+        }
+        [data-theme="dark"] #settingsScreen p,
+        [data-theme="dark"] #settingsScreen span {
+            color: #b0b0b0 !important;
+        }
+        [data-theme="dark"] #settingsScreen .form-select {
+            background: rgba(50, 50, 50, 0.9) !important;
+            color: #e0e0e0 !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        [data-theme="dark"] #settingsScreen .form-select option {
+            background: #2a2a2a !important;
+            color: #e0e0e0 !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Global Navbar (hidden on login screen) -->
+    <nav id="globalNavbar" class="navbar navbar-expand-lg navbar-custom" style="display: none;">
+        <div class="container-fluid">
+            <a href="#" class="navbar-brand" id="navHome"><i class="bi bi-book-half"></i> Recipe Book</a>
+            <div class="d-flex align-items-center gap-3">
+                <span id="userGreeting" class="text-primary fw-bold"></span>
+                <button id="navSettingsBtn" class="btn btn-outline-primary"><i class="bi bi-gear-fill"></i> Settings</button>
+                <button id="navLogoutBtn" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen active">
+            <div class="login-wrapper">
+                <div class="login-card">
+                    <div class="login-header">
+                        <i class="bi bi-book-half display-1 text-gradient"></i>
+                        <h1 class="display-4 fw-bold mt-3">Recipe Book</h1>
+                        <p class="text-muted">Your culinary companion with voice guidance</p>
+                    </div>
+                    <div class="login-body">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-person-fill"></i> Username</label>
+                            <input type="text" class="form-control form-control-lg" id="loginUsername" placeholder="Enter username" autocomplete="username">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-lock-fill"></i> Password</label>
+                            <input type="password" class="form-control form-control-lg" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
+                        </div>
+                        <button id="loginBtn" class="btn btn-gradient btn-lg w-100 mb-3">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+                        <p id="loginError" class="text-danger text-center"></p>
+                        <div class="login-hint">
+                            <small class="text-muted">💡 Try: admin/admin123</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recipe List Screen -->
+        <div id="recipeListScreen" class="screen">
+            <div class="container py-4">
+                <div class="search-section mb-4">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="searchBar" placeholder="Search recipes...">
+                    </div>
+                </div>
+                <button id="addRecipeBtn" class="btn btn-gradient btn-lg w-100 mb-4">
+                    <i class="bi bi-plus-circle"></i> Add New Recipe
+                </button>
+                <div id="recipeList" class="row g-4"></div>
+            </div>
+        </div>
+
+        <!-- Recipe View Screen -->
+        <div id="recipeViewScreen" class="screen">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <button id="backToListBtn" class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    <h2 class="text-center text-white mb-0" id="recipeTitle"></h2>
+                    <div style="width: 80px;"></div>
+                </div>
+                <div class="text-center mb-4">
+                    <button id="thumbsUpBtn" class="btn btn-outline-light me-2">
+                        <i class="bi bi-hand-thumbs-up"></i> <span id="thumbsUpCount">0</span>
+                    </button>
+                    <button id="thumbsDownBtn" class="btn btn-outline-light me-3">
+                        <i class="bi bi-hand-thumbs-down"></i> <span id="thumbsDownCount">0</span>
+                    </button>
+                    <button id="deleteRecipeBtn" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Delete Recipe
+                    </button>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="card shadow-lg border-0 h-100">
+                            <div class="card-header bg-gradient-primary text-white">
+                                <h4 class="mb-0"><i class="bi bi-basket"></i> Ingredients</h4>
+                            </div>
+                            <div class="card-body">
+                                <ul id="ingredientsList" class="list-unstyled ingredient-list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="card shadow-lg border-0 h-100">
+                            <div class="card-header bg-gradient-success text-white">
+                                <h4 class="mb-0"><i class="bi bi-list-ol"></i> Preparation Steps</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="tts-controls mb-4">
+                                    <button id="playBtn" class="btn btn-success btn-lg flex-fill">
+                                        <i class="bi bi-play-circle-fill"></i> Play
+                                    </button>
+                                    <button id="pauseBtn" class="btn btn-warning btn-lg flex-fill" disabled>
+                                        <i class="bi bi-pause-circle-fill"></i> Pause
+                                    </button>
+                                </div>
+                                <ol id="stepsList" class="steps-list"></ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settingsScreen" class="screen">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <button id="backFromSettingsBtn" class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    <h2 style="color: white; text-align: center; margin: 0;"><i class="bi bi-gear-fill"></i> Settings</h2>
+                    <div style="width: 80px;"></div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div style="background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.16);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
+                                <div>
+                                    <h5 style="color: #333; margin: 0 0 0.5rem 0;"><i class="bi bi-palette"></i> Theme</h5>
+                                    <p style="color: #666; margin: 0; font-size: 0.9rem;">Switch between light and dark mode</p>
+                                </div>
+                                <button id="themeToggle" class="btn btn-outline-primary">
+                                    <i class="bi bi-moon-stars-fill"></i> Dark Mode
+                                </button>
+                            </div>
+                        </div>
+                        <div style="background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.16);">
+                            <div>
+                                <h5 style="color: #333; margin: 0 0 0.5rem 0;"><i class="bi bi-mic"></i> Voice Selection</h5>
+                                <p style="color: #666; margin: 0 0 1rem 0; font-size: 0.9rem;">Choose a voice for reading recipes</p>
+                                <select id="voiceSelect" class="form-select"></select>
+                            </div>
+                        </div>
+                        <div style="background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.16);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h5 style="color: #333; margin: 0 0 0.5rem 0;"><i class="bi bi-music-note-beamed"></i> Background Music</h5>
+                                    <p style="color: #666; margin: 0; font-size: 0.9rem;">Play music while reading recipes</p>
+                                </div>
+                                <button id="musicToggle" class="btn btn-outline-primary">
+                                    <i class="bi bi-play-circle"></i> Off
+                                </button>
+                            </div>
+                        </div>
+                        <div style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.16);">
+                            <div style="text-align: center;">
+                                <h5 style="color: #333; margin: 0 0 0.5rem 0;"><i class="bi bi-clock"></i> Speech Delay</h5>
+                                <p style="color: #666; margin: 0 0 2rem 0; font-size: 0.9rem;">Time between reading each step</p>
+                                <div style="margin: 2rem 0 1rem;">
+                                    <span id="delayValue" style="color: #667eea; font-size: 3rem; font-weight: bold;">2</span>
+                                    <span style="color: #666; font-size: 1.5rem; margin-left: 0.5rem;">seconds</span>
+                                </div>
+                                <input type="range" class="form-range" id="delaySlider" min="0" max="10" step="0.5" value="2">
+                                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                                    <span style="color: #666; font-size: 0.9rem;">0s</span>
+                                    <span style="color: #666; font-size: 0.9rem;">5s</span>
+                                    <span style="color: #666; font-size: 0.9rem;">10s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Recipe Modal -->
+        <div id="recipeModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-gradient-primary text-white">
+                        <h3 class="modal-title" id="modalTitle"><i class="bi bi-plus-circle"></i> Add New Recipe</h3>
+                        <button type="button" class="btn-close btn-close-white" id="cancelRecipeBtn"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="bi bi-card-heading"></i> Recipe Name</label>
+                            <input type="text" class="form-control form-control-lg" id="recipeName" placeholder="e.g., Chocolate Cake">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="bi bi-basket"></i> Ingredients</label>
+                            <textarea class="form-control" id="recipeIngredients" rows="5" placeholder="Enter each ingredient on a new line&#10;e.g.,&#10;2 cups flour&#10;1 cup sugar&#10;3 eggs"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="bi bi-list-ol"></i> Preparation Steps</label>
+                            <textarea class="form-control" id="recipeSteps" rows="6" placeholder="Enter each step on a new line&#10;e.g.,&#10;Preheat oven to 180 degrees&#10;Mix dry ingredients&#10;Add wet ingredients"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="saveRecipeBtn" class="btn btn-gradient btn-lg px-5">
+                            <i class="bi bi-check-circle"></i> Save Recipe
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
